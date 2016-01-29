@@ -67,16 +67,24 @@ def reset_owncloud_account(reset_procedure=None, num_test_users=None):
     else:
         logger.info('reset_owncloud_account (%s) for %d users', reset_procedure, num_test_users)
 
-    if reset_procedure == 'delete':
-        delete_owncloud_account(config.oc_account_name)
-        create_owncloud_account(config.oc_account_name, config.oc_account_password)
+    if reset_procedure == 'delete' or reset_procedure == 'keep':
+        if reset_procedure == 'delete':
+            delete_owncloud_account(config.oc_account_name)
+        try:
+            create_owncloud_account(config.oc_account_name, config.oc_account_password)
+        except:
+            pass
         login_owncloud_account(config.oc_account_name, config.oc_account_password)
 
         if num_test_users is not None:
             for i in range(1, num_test_users + 1):
                 username = "%s%i" % (config.oc_account_name, i)
-                delete_owncloud_account(username)
-                create_owncloud_account(username, config.oc_account_password)
+                if reset_procedure == 'delete':
+                    delete_owncloud_account(username)
+                try:
+                    create_owncloud_account(username, config.oc_account_password)
+                except:
+                    pass
                 login_owncloud_account(username, config.oc_account_password)
 
         return
@@ -615,6 +623,7 @@ def get_oc_api():
         protocol += 's'
 
     url = protocol + '://' + config.oc_server + '/' + config.oc_root
+    #oc_api = owncloud.Client(url, verify_certs=False, debug=True)
     oc_api = owncloud.Client(url, verify_certs=False)
     return oc_api
 
